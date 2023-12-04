@@ -1,0 +1,40 @@
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
+use std::collections::HashSet;
+
+fn main() -> io::Result<()>{
+    // Open the file
+    let file_path = "input.txt";
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let counts: HashMap<i32, usize> = HashMap::new();
+
+    let result: i32 = reader.lines().map(|line| {
+        let line = line.unwrap();
+        let split1 =line.split_once(':').unwrap(); 
+        let card_num: i32 = split1.0.split_once(' ').unwrap().1.parse().unwrap();
+        counts[card_num] = 1;
+        let (winning, mine) = split1.1.split_once('|').unwrap();
+        let winning = parse_list(winning);
+        let mine = parse_list(mine);
+        (card_num, winning.intersection(&mine).count())
+    }).for_each(|(card_num, count)| {
+        (..counts[card_num]).for_each(|_| {
+            (card_num+1..=card_num+count).for_each(|new_card| {
+                counts[new_card] += 1
+            })
+        }
+    })
+
+    println!("{:?}", result);
+
+
+    Ok(())
+}
+
+fn parse_list(s: &str) -> HashSet<i32> {
+    s.split(' ')
+        .filter_map(|x| x.parse().ok())
+        .collect()
+}
